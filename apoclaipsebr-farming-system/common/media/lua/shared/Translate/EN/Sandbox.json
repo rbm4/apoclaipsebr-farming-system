@@ -1,0 +1,9 @@
+{
+  "Sandbox_ApocalypseBRFarmingSystem_Options": "ApocalipseBR Farming System",
+  "Sandbox_ApocalypseBRFarmingSystem_TimeBudgetMs": "Farming time budget per tick (ms)",
+  "Sandbox_ApocalypseBRFarmingSystem_TimeBudgetMs_tooltip": "Stops starting new farming operations after this time. One operation can exceed the limit. Increase only if backlog persists and the server has spare processing time. Default: 2 ms.",
+  "Sandbox_ApocalypseBRFarmingSystem_AdjustmentStep": "Adaptive operation adjustment step",
+  "Sandbox_ApocalypseBRFarmingSystem_AdjustmentStep_tooltip": "Every ten game minutes, unfinished work raises the operation allowance by this amount. Finishing with more than 10% of ticks to spare lowers it. This is a tuning step, not a fixed plant count. Default: 5.",
+  "Sandbox_ApocalypseBRFarmingSystem_MaxOperationsPerTick": "Operation safety ceiling per tick",
+  "Sandbox_ApocalypseBRFarmingSystem_MaxOperationsPerTick_tooltip": "Maximum automatically tuned allowance. The time budget still applies. Operations include health, water/disease, checks and plot cleanup; they are not unique plants. Default: 10000."
+}

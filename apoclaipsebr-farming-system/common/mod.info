@@ -1,0 +1,9 @@
+name=ApocalipseBR - Farming System
+author=Hypothetic
+poster=poster.png
+icon=icon.png
+id=ApocalypseBR_FarmingSystem
+modversion=1.0
+versionMin=42.19
+description=<RGB:0.2,1,0.3>Optimizes multiplayer farming updates by slicing vanilla plant maintenance across server ticks.
+url=https://apocalipse.cloud/

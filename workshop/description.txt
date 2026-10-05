@@ -1,0 +1,45 @@
+[h1]ApocalipseBR - Farming System[/h1]
+
+Server-side Build 42 farming performance patch for multiplayer worlds with large farms.
+
+[h2]What It Does[/h2]
+
+Project Zomboid's vanilla farming system can process every plant in a single EveryTenMinutes update. On servers with many planted crops, that creates large main-thread spikes.
+
+This mod keeps vanilla farming behavior, but spreads plant maintenance across server ticks in small batches.
+
+The way this mod achieves the claims above is by patching the .lua module SFarmingSystem, specifically the EveryTenMinutes, in which is the heavy work is triggered, this is a completly server-side mod that doesn't affect anything but the server's pacing of plant simulation to spread work between ticks, instead of processing all plants in a single tick.
+
+[list]
+[*]Keeps vanilla planting, watering, harvesting, growth, disease, health, and plow-fade logic.
+[*]Replaces the heavy farming EveryTenMinutes pass with a queued server-side processor.
+[*]Processes plant work gradually across OnTick instead of all at once.
+[*]Reduces multiplayer hitching caused by large farming updates.
+[/list]
+
+[h2]Compatibility[/h2]
+
+[list]
+[*]Build 42.19+.
+[*]Server-side optimization mod.
+[*]Does not add new crops, recipes, items, or farming UI.
+[*]Designed to preserve vanilla farming rules while improving update scheduling.
+[/list]
+
+[h2]Admin Notes[/h2]
+
+The mod logs when farming jobs are queued and periodically reports queue backlog while work is draining. This helps confirm that plant processing is moving through ticks instead of blocking one large update.
+
+Expected telemetry change:
+
+[list]
+[*]Large spikes in EveryTenMinutes farming callbacks should drop sharply.
+[*]A smaller amount of work may appear under this mod's OnTick callback.
+[*]If queue backlog grows continuously, the per-tick plant budget may need tuning for your server scale.
+[/list]
+
+[h2]ApocalipseBR[/h2]
+
+Created for the ApocalipseBR multiplayer server environment.
+
+https://apocalipse.cloud/

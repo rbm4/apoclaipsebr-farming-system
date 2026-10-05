@@ -1,0 +1,19 @@
+{
+    "$schema": "https://raw.githubusercontent.com/Konijima/project-zomboid-studio/master/pzstudio.schema.json",
+    "title": "Apoclaipse [BR] Multiplayer Farming system",
+    "authors": [],
+    "workshop": {
+        "visibility": "public",
+        "id":3781972601,
+        "tags": [
+            "Build 42"
+        ],
+        "excludes": []
+    },
+    "mods": {
+        "apoclaipsebr-farming-system": {
+            "name": "Apoclaipse [BR] Multiplayer Farming system",
+            "description": ""
+        }
+    }
+}

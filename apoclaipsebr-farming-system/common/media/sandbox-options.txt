@@ -1,0 +1,13 @@
+VERSION = 1,
+
+option ApocalypseBRFarmingSystem.TimeBudgetMs = {
+	type = integer, min = 1, max = 50, default = 2, page = ApocalypseBRFarmingSystem_Options, translation = ApocalypseBRFarmingSystem_TimeBudgetMs,
+}
+
+option ApocalypseBRFarmingSystem.AdjustmentStep = {
+	type = integer, min = 1, max = 1000, default = 5, page = ApocalypseBRFarmingSystem_Options, translation = ApocalypseBRFarmingSystem_AdjustmentStep,
+}
+
+option ApocalypseBRFarmingSystem.MaxOperationsPerTick = {
+	type = integer, min = 1, max = 100000, default = 10000, page = ApocalypseBRFarmingSystem_Options, translation = ApocalypseBRFarmingSystem_MaxOperationsPerTick,
+}
