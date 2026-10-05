@@ -74,27 +74,30 @@ end
 
 -- Preserve all toModData extensions. Nested/custom mutable values conservatively
 -- force transmission; scalar equality also checks keys removed since last send.
+local function sameData(values, data)
+    for key, value in pairs(data) do
+        if type(value) == "table" or type(value) == "userdata" or values[key] ~= value then
+            return false
+        end
+    end
+    for key in pairs(values) do
+        if data[key] == nil then return false end
+    end
+    return true
+end
+
 function SPlantGlobalObject:saveData()
     local start = getTimestampMs()
     local object = self:getIsoObject()
-    if not object then return end
+    if not object then syncCache[self] = nil return end
     local data = object:getModData()
-    self:toModData(data)
     local cached = syncCache[self]
     local changed = not cached or cached.object ~= object
-    if not changed then
-        for key, value in pairs(data) do
-            if type(value) == "table" or type(value) == "userdata" or cached.values[key] ~= value then
-                changed = true
-                break
-            end
-        end
-        if not changed then
-            for key in pairs(cached.values) do
-                if data[key] == nil then changed = true break end
-            end
-        end
-    end
+    -- Another mod may have changed/transmitted the IsoObject since our last send.
+    -- Detect that before toModData overwrites fields back to the plant's values.
+    if not changed then changed = not sameData(cached.values, data) end
+    self:toModData(data)
+    if not changed then changed = not sameData(cached.values, data) end
     if changed then
         object:transmitModData()
         local values = {}
@@ -179,19 +182,21 @@ local function updatePlantHealth(system, luaObject, context)
     end
 end
 
+local function processOperation(system, phase, plant, context)
+    if phase == "check" then system:checkPlant2(plant)
+    elseif phase == "plowFade" then system:plowFadeCheck(plant)
+    elseif phase == "waterDisease" and plant:isAlive() then
+        plant:lowerWaterLvl()
+        plant:upDisease()
+    elseif phase == "health" then updatePlantHealth(system, plant, context) end
+end
+
 local function dispatch(system, q, phase, plant, context)
     local oldHour, oldContext = system.hoursElapsed, activeContext
     system.hoursElapsed, activeContext = context.hoursElapsed, context
     -- A failed operation is retired, never retried after a partial mutation.
     -- Restore the public clock even if another mod's callback raises an error.
-    local ok, message = pcall(function()
-        if phase == "check" then system:checkPlant2(plant)
-        elseif phase == "plowFade" then system:plowFadeCheck(plant)
-        elseif phase == "waterDisease" and plant:isAlive() then
-            plant:lowerWaterLvl()
-            plant:upDisease()
-        elseif phase == "health" then updatePlantHealth(system, plant, context) end
-    end)
+    local ok, message = pcall(processOperation, system, phase, plant, context)
     system.hoursElapsed, activeContext = oldHour, oldContext
     if not ok then
         q.errors = (q.errors or 0) + 1

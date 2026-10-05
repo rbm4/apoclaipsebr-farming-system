@@ -164,16 +164,23 @@ lua.execute(r'''
 local p=setmetatable({health=50,waterLvl=50,object=makeObject()}, {__index=SPlantGlobalObject})
 system:newLuaObject(p)
 p:saveData(); p:saveData(); assert(p.object.sends==1)
-p.health=51; p:saveData(); assert(p.object.sends==2)
-p.custom="new"; p:saveData(); assert(p.object.sends==3)
-p.custom=nil; p:saveData(); assert(p.object.sends==4)
-p.custom={a=1}; p:saveData(); p.custom.a=2; p:saveData(); assert(p.object.sends==6)
+p.object.data.health=999
+p:saveData(); assert(p.object.sends==2 and p.object.data.health==50)
+local oldObject=p.object; p.object=nil; p:saveData(); p.object=oldObject
+p:saveData(); assert(p.object.sends==3)
+p.health=51; p:saveData(); assert(p.object.sends==4)
+p.custom="new"; p:saveData(); assert(p.object.sends==5)
+p.custom=nil; p:saveData(); assert(p.object.sends==6)
+p.custom={a=1}; p:saveData(); p.custom.a=2; p:saveData(); assert(p.object.sends==8)
 p.custom=nil
 p.object=makeObject(); p:saveData(); assert(p.object.sends==1)
 system:EveryTenMinutes()
 system.hoursElapsed=9
+RainManager.isRaining=function() return true end
+getClimateManager=function() return {getSeasonName=function() return "Winter" end,getPrecipitationIntensity=function() return 1 end} end
 tickCallback()
-assert(system.observedHour==0 and system.hoursElapsed==9)
+assert(system.observedHour==0 and system.hoursElapsed==9 and p.waterLvl==50)
+RainManager.isRaining=function() return false end
 -- Failed callback still restores the clock and does not poison subsequent ticks.
 p.fail=true; system:EveryTenMinutes(); tickCallback()
 assert(system.hoursElapsed==9)
@@ -189,6 +196,68 @@ p:saveData(); assert(p.object.sends>=2)
 lua.execute("originalTickCallback = tickCallback")
 lua.execute(main)
 assert lua.eval("tickCallback == originalTickCallback")
+
+# Compare health results to the actual installed 42.21 function, including season,
+# greenhouse, weed, houseplant and water branches. No install files are changed.
+vanilla_path = Path("Z:/SteamLibrary/steamapps/common/ProjectZomboid/media/lua/server/Farming/SFarmingSystem.lua")
+if vanilla_path.exists():
+    source = vanilla_path.read_text(encoding="utf-8")
+    health = source[source.index("function SFarmingSystem:changeHealth()"):source.index("function SFarmingSystem:checkPlant()")]
+    lua.execute("VanillaFarming = {}")
+    lua.execute(health.replace("function SFarmingSystem:changeHealth()", "function VanillaFarming:changeHealth()", 1))
+    lua.execute(r'''
+    local config
+    string.contains=function(value,part) return string.find(value,part,1,true)~=nil end
+    function getWorld() return {getWeather=function() return config.weather end} end
+    function getClimateManager() return {getSeasonName=function() return config.seasonName end,getPrecipitationIntensity=function() return 0 end} end
+    function getSandboxOptions() return {getOptionByName=function(_,name)
+        return {getValue=function() if name=="PlantGrowingSeasons" then return config.seasons else return config.noInside end end}
+    end} end
+    function SFarmingSystem:hasWeeds() return config.weeds end
+    function SPlantGlobalObject:isBadMonth() return config.badMonth end
+    function SPlantGlobalObject:isBadMonthHardy() return config.monthHardy end
+    function SPlantGlobalObject:isColdHardy() return config.coldHardy end
+    function SPlantGlobalObject:hasVisibleFlies() return config.flies end
+    function SPlantGlobalObject:getSquare()
+        return {isOutside=function() return config.outside end,setHasFlies=function() end,
+            getRoom=function() return {getRoomDef=function() return {getName=function()
+                return config.greenhouse and "GreenhouseRoom" or "Kitchen"
+            end} end} end}
+    end
+    farming_vegetableconf.calcWater=function(first)
+        if first==17 then return config.water else return config.waterMax end
+    end
+    math.randomseed(73)
+    for trial=1,250 do
+        local function coin() return math.random(2)==1 end
+        config={weather=coin() and "sunny" or "cloudy", seasonName=coin() and "Winter" or "Summer",
+            seasons=coin(),noInside=coin(),weeds=coin(),badMonth=coin(),monthHardy=coin(),
+            coldHardy=coin(),outside=coin(),greenhouse=coin(),flies=coin(),
+            water=math.random(3)-3,waterMax=math.random(3)-3}
+        season.currentTemp=coin() and 5 or 20
+        season.weather=config.weather
+        farming_vegetableconf.props.Test={isHouseplant=coin()}
+        local function newPlant()
+            return setmetatable({health=50,waterLvl=50,waterNeeded=17,waterNeededMax=80,
+                typeOfSeed="Test",naturalLight=0.5,state="seeded",object=makeObject()},
+                {__index=SPlantGlobalObject})
+        end
+        local expected,actual=newPlant(),newPlant()
+        local reference=setmetatable({plants={expected}}, {__index=SFarmingSystem})
+        VanillaFarming.changeHealth(reference)
+        system=setmetatable({plants={},hoursElapsed=0,previousHour=0,
+            hourElapsedForWater=0,previousHourHealth=1}, {__index=SFarmingSystem})
+        SFarmingSystem.instance=system
+        system:newLuaObject(actual)
+        hour=1
+        system:EveryTenMinutes()
+        tickCallback()
+        assert(math.abs(actual.health-expected.health)<0.00000001, "vanilla health mismatch")
+    end
+    ''')
+    print("PASS: 250 health scenarios compared with installed vanilla")
+else:
+    print("SKIP: installed vanilla health comparison (game path unavailable)")
 for path in MEDIA.rglob("*.json"):
     json.loads(path.read_text(encoding="utf-8"))
 for path in MEDIA.rglob("*"):

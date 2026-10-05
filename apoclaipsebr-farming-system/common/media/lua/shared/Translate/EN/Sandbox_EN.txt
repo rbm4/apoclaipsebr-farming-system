@@ -1,7 +1,0 @@
-Sandbox_ApocalypseBRFarmingSystem_Options = "ApocalipseBR Farming System",
-Sandbox_ApocalypseBRFarmingSystem_PlantsPerTick = "Plants Processed Per Tick",
-Sandbox_ApocalypseBRFarmingSystem_PlantsPerTick_tooltip = "How many queued farming plant operations the server processes each tick. Lower values reduce spikes but drain large farms more slowly. Default: 25.",
-Sandbox_ApocalypseBRFarmingSystem_MaxPlantsPerTick = "Maximum Plants Processed Per Tick",
-Sandbox_ApocalypseBRFarmingSystem_MaxPlantsPerTick_tooltip = "Upper limit used by adaptive catch-up when the farming queue has a large backlog. Default: 200.",
-Sandbox_ApocalypseBRFarmingSystem_BacklogOpsPerStep = "Backlog Operations Per Boost Step",
-Sandbox_ApocalypseBRFarmingSystem_BacklogOpsPerStep_tooltip = "How many queued plant operations add another base budget step. Lower values catch up faster but increase tick cost sooner. Default: 50000.",

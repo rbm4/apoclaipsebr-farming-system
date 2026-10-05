@@ -1,7 +1,0 @@
-Sandbox_ApocalypseBRFarmingSystem_Options = "ApocalipseBR Farming System",
-Sandbox_ApocalypseBRFarmingSystem_PlantsPerTick = "Plantas Processadas Por Tick",
-Sandbox_ApocalypseBRFarmingSystem_PlantsPerTick_tooltip = "Quantas operacoes de plantacao em fila o servidor processa por tick. Valores menores reduzem travadas, mas drenam fazendas grandes mais lentamente. Padrao: 25.",
-Sandbox_ApocalypseBRFarmingSystem_MaxPlantsPerTick = "Maximo de Plantas Processadas Por Tick",
-Sandbox_ApocalypseBRFarmingSystem_MaxPlantsPerTick_tooltip = "Limite superior usado pela recuperacao adaptativa quando a fila de farming esta muito grande. Padrao: 200.",
-Sandbox_ApocalypseBRFarmingSystem_BacklogOpsPerStep = "Operacoes em Fila Por Passo de Reforco",
-Sandbox_ApocalypseBRFarmingSystem_BacklogOpsPerStep_tooltip = "Quantas operacoes de plantacao em fila adicionam mais um passo do orcamento base. Valores menores recuperam mais rapido, mas aumentam o custo por tick mais cedo. Padrao: 50000.",
