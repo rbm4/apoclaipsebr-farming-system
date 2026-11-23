@@ -1,5 +1,13 @@
 VERSION = 1,
 
+option ApocalypseBRFarmingSystem.MinUpdateIntervalMinutes = {
+	type = integer, min = 10, max = 1440, default = 20, page = ApocalypseBRFarmingSystem_Options, translation = ApocalypseBRFarmingSystem_MinUpdateIntervalMinutes,
+}
+
+option ApocalypseBRFarmingSystem.MaxUpdateIntervalMinutes = {
+	type = integer, min = 10, max = 1440, default = 60, page = ApocalypseBRFarmingSystem_Options, translation = ApocalypseBRFarmingSystem_MaxUpdateIntervalMinutes,
+}
+
 option ApocalypseBRFarmingSystem.TimeBudgetMs = {
 	type = integer, min = 1, max = 50, default = 2, page = ApocalypseBRFarmingSystem_Options, translation = ApocalypseBRFarmingSystem_TimeBudgetMs,
 }

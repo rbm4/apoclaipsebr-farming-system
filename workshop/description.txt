@@ -1,45 +1,24 @@
 [h1]ApocalipseBR - Farming System[/h1]
 
-Server-side Build 42 farming performance patch for multiplayer worlds with large farms.
+A server-side farming performance mod for Project Zomboid Build 42, designed for multiplayer servers with large farms.
 
-[h2]What It Does[/h2]
+Spreads plant maintenance across server ticks to help reduce farming-related lag spikes. Plants catch up on growth, water, health and disease as they are processed, and direct farming interactions coalesce the sync for the same plant at most once per tick, instead of per-command. These are Huge saving for servers with plants that have modData attached to them
 
-Project Zomboid's vanilla farming system can process every plant in a single EveryTenMinutes update. On servers with many planted crops, that creates large main-thread spikes.
+[h2]Installation[/h2]
 
-This mod keeps vanilla farming behavior, but spreads plant maintenance across server ticks in small batches.
+Subscribe and enable [b]ApocalypseBR_FarmingSystem[/b] in your server's mod list.
 
-The way this mod achieves the claims above is by patching the .lua module SFarmingSystem, specifically the EveryTenMinutes, in which is the heavy work is triggered, this is a completly server-side mod that doesn't affect anything but the server's pacing of plant simulation to spread work between ticks, instead of processing all plants in a single tick.
-
-[list]
-[*]Keeps vanilla planting, watering, harvesting, growth, disease, health, and plow-fade logic.
-[*]Replaces the heavy farming EveryTenMinutes pass with a queued server-side processor.
-[*]Processes plant work gradually across OnTick instead of all at once.
-[*]Reduces multiplayer hitching caused by large farming updates.
-[/list]
-
-[h2]Compatibility[/h2]
+[h2]Settings and Compatibility[/h2]
 
 [list]
-[*]Build 42.19+.
-[*]Server-side optimization mod.
-[*]Does not add new crops, recipes, items, or farming UI.
-[*]Designed to preserve vanilla farming rules while improving update scheduling.
-[/list]
-
-[h2]Admin Notes[/h2]
-
-The mod logs when farming jobs are queued and periodically reports queue backlog while work is draining. This helps confirm that plant processing is moving through ticks instead of blocking one large update.
-
-Expected telemetry change:
-
-[list]
-[*]Large spikes in EveryTenMinutes farming callbacks should drop sharply.
-[*]A smaller amount of work may appear under this mod's OnTick callback.
-[*]If queue backlog grows continuously, the per-tick plant budget may need tuning for your server scale.
+[*]Adjust the farming time budget and update intervals in Sandbox Options.
+[*]Adds no crops, items, recipes or farming UI.
+[*]Checked against Build 42.21.0+
+[*]Changes update scheduling; heavily overloaded servers may still experience delayed plant updates.
+[*]Other mods that replace the same farming functions may conflict.
 [/list]
 
 [h2]ApocalipseBR[/h2]
 
-Created for the ApocalipseBR multiplayer server environment.
-
-https://apocalipse.cloud/
+Created for the ApocalipseBR community.
+[url=https://plataforma.apocalipse.cloud/]Visit our platform[/url]

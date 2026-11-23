@@ -11,7 +11,8 @@ end
 function Queue.add(q, plant)
     if q.nodes[plant] then return end
     q.serial = q.serial + 1
-    local node = { plant = plant, alive = true, serial = q.serial, prev = q.last }
+    local node = { plant = plant, alive = true, serial = q.serial, prev = q.last,
+        lastStep = q.targetStep or 0 }
     if q.last then q.last.next = node else q.first = node end
     q.last = node
     q.nodes[plant] = node
@@ -38,12 +39,28 @@ function Queue.enqueue(q, phase, reverse, context)
     q.remaining = q.remaining + q.count
 end
 
+-- One immutable current sweep and one replaceable pending sweep. New requests
+-- advance the pending target rather than adding historical plant scans.
+function Queue.coalesce(q, context)
+    q.targetStep = context.step
+    if q.count == 0 then q.completedFloor = context.step return end
+    if q.tail > q.head then
+        local pending = q.jobs[q.tail]
+        q.remaining = q.remaining - pending.remaining + q.count
+        pending.node, pending.cutoff, pending.remaining = q.first, q.serial, q.count
+        pending.context, pending.minStep = context, context.step
+    else
+        Queue.enqueue(q, "update", false, context)
+        q.jobs[q.tail].minStep = context.step
+    end
+end
+
 function Queue.boundary(q, step, maximum)
     local old = q.quota
     if q.intervalTicks > 0 then
-        if q.remaining > 0 then
+        if q.remaining > 0 and q.cappedTicks == 0 then
             q.quota = math.min(maximum, q.quota + step)
-        elseif q.drainTick < q.intervalTicks * 0.9 then
+        elseif q.remaining == 0 and q.drainTick < q.intervalTicks * 0.9 then
             q.quota = math.max(1, q.quota - step)
         end
     end
@@ -62,17 +79,33 @@ local function finish(q, job)
     -- Removals can unlink unvisited nodes, so retire their estimated work too.
     q.remaining = q.remaining - job.remaining
     q.jobs[q.head] = nil
+    if job.minStep then q.completedFloor = math.max(q.completedFloor or 0, job.minStep) end
     q.head = q.head + 1
+    if job.minStep and q.head <= q.tail then
+        -- Keep numeric indices bounded too, even when overload never drains.
+        local pending = q.jobs[q.head]
+        q.jobs = { pending }
+        q.head, q.tail = 1, 1
+    end
     if q.head > q.tail then
         q.head, q.tail = 1, 0
         q.drainTick = q.intervalTicks
+        -- Budget-limited catch-up can leave time debt after every member was
+        -- visited. Continue fairly without waiting for another game boundary.
+        if job.minStep and job.minStep < job.context.step and q.count > 0 then
+            Queue.enqueue(q, "update", false, job.context)
+            q.jobs[q.tail].minStep = job.context.step
+        end
     end
 end
 
-function Queue.tick(q, timeBudgetMs, dispatch)
+function Queue.tick(q, timeBudgetMs, dispatch, flush, flushFirst)
     q.ticks = q.ticks + 1
     q.intervalTicks = q.intervalTicks + 1
     local start = q.clock()
+    q.deadline = start + timeBudgetMs
+    -- Give a carried publication batch first use of the shared budget.
+    if flushFirst then flush(q) end
     local operations = 0
     while q.head <= q.tail and operations < q.quota do
         if q.clock() - start >= timeBudgetMs then
@@ -91,7 +124,8 @@ function Queue.tick(q, timeBudgetMs, dispatch)
             operations = operations + 1
             if node.alive and q.nodes[node.plant] == node then
                 local begin = q.clock()
-                dispatch(job.phase, node.plant, job.context)
+                dispatch(job.phase, node.plant, job.context, node)
+                if job.minStep then job.minStep = math.min(job.minStep, node.lastStep) end
                 local elapsed = q.clock() - begin
                 local stat = q.phases[job.phase] or { calls = 0, totalMs = 0, maxMs = 0 }
                 q.phases[job.phase] = stat
@@ -105,7 +139,9 @@ function Queue.tick(q, timeBudgetMs, dispatch)
             if not job.node or job.node.serial > job.cutoff then finish(q, job) end
         end
     end
+    if flush and not flushFirst then flush(q) end
     q.maxTickMs = math.max(q.maxTickMs, q.clock() - start)
+    q.deadline = nil
 end
 
 return Queue

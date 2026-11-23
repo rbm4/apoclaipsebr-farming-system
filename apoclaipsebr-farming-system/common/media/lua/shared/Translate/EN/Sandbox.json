@@ -3,7 +3,11 @@
   "Sandbox_ApocalypseBRFarmingSystem_TimeBudgetMs": "Farming time budget per tick (ms)",
   "Sandbox_ApocalypseBRFarmingSystem_TimeBudgetMs_tooltip": "Stops starting new farming operations after this time. One operation can exceed the limit. Increase only if backlog persists and the server has spare processing time. Default: 2 ms.",
   "Sandbox_ApocalypseBRFarmingSystem_AdjustmentStep": "Adaptive operation adjustment step",
-  "Sandbox_ApocalypseBRFarmingSystem_AdjustmentStep_tooltip": "Every ten game minutes, unfinished work raises the operation allowance by this amount. Finishing with more than 10% of ticks to spare lowers it. This is a tuning step, not a fixed plant count. Default: 5.",
+  "Sandbox_ApocalypseBRFarmingSystem_AdjustmentStep_tooltip": "Raises the plant-visit allowance only when unfinished work is not time-capped. Finishing with more than 10% of ticks to spare lowers it. Time-capped work adapts the sweep interval instead. Default: 5.",
   "Sandbox_ApocalypseBRFarmingSystem_MaxOperationsPerTick": "Operation safety ceiling per tick",
-  "Sandbox_ApocalypseBRFarmingSystem_MaxOperationsPerTick_tooltip": "Maximum automatically tuned allowance. The time budget still applies. Operations include health, water/disease, checks and plot cleanup; they are not unique plants. Default: 10000."
+  "Sandbox_ApocalypseBRFarmingSystem_MaxOperationsPerTick_tooltip": "Maximum automatically tuned plant visits per tick. Each visit catches up elapsed game time; the time budget still applies. This is not a plant population limit. Default: 10000.",
+  "Sandbox_ApocalypseBRFarmingSystem_MinUpdateIntervalMinutes": "Minimum farming revisit interval (game minutes)",
+  "Sandbox_ApocalypseBRFarmingSystem_MinUpdateIntervalMinutes_tooltip": "Shortest background sweep interval. Rounded up to ten game minutes. Player interactions catch up synchronously. Default: 20.",
+  "Sandbox_ApocalypseBRFarmingSystem_MaxUpdateIntervalMinutes": "Maximum farming revisit interval (game minutes)",
+  "Sandbox_ApocalypseBRFarmingSystem_MaxUpdateIntervalMinutes_tooltip": "Longest adaptive background sweep interval under time-budget saturation. Rounded up to ten game minutes and never below the minimum. This does not guarantee a maximum simulation lag under sustained overload. Default: 60."
 }
